@@ -9,9 +9,10 @@ find_package(OpenSSL REQUIRED)
 
 
 add_executable(block_chain 
+    src/account.cpp
+    src/user.cpp
     src/block.cpp
     src/blockChain.cpp
-    src/transactionList.cpp
     src/util.cpp
     src/transaction.cpp
     src/main.cpp)

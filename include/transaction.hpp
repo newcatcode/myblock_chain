@@ -10,7 +10,7 @@ public:
 
     Transaction() = default;
     
-    Transaction(std::string sender_key, std::string recipient_key, double amount, time_point timestamp = std::chrono::system_clock::now());
+    Transaction(u_int64_t transaction_id, std::string sender_key, std::string recipient_key, double amount, time_point timestamp = std::chrono::system_clock::now());
     // Compute the hash of the transaction
     std::string compute_hash() const;
     // Sign the transaction with the sender's private key
@@ -20,9 +20,11 @@ public:
     // Convert the transaction to a string representation
     std::string to_string() const;
 private:
+    u_int64_t _transaction_id;
     std::string _sender_key;
     std::string _recipient_key;
     double _amount;
+    u_int64_t _nonce;
     time_point _timestamp;
     std::string _signature;
 };
