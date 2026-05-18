@@ -1,0 +1,3 @@
+/home/user/cmake_project/myblock_chain/build/CMakeFiles/block_chain.dir
+/home/user/cmake_project/myblock_chain/build/CMakeFiles/edit_cache.dir
+/home/user/cmake_project/myblock_chain/build/CMakeFiles/rebuild_cache.dir
