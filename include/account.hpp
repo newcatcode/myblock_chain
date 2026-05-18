@@ -11,6 +11,9 @@ public:
     std::string get_public_key() const;
     // Get the private key of the account
     std::string get_private_key() const;
+    // Get the balance of the account
+    double get_balance() const;
+    
 private:
     // user's name
     std::string _name;
