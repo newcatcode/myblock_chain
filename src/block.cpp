@@ -7,13 +7,12 @@
 
 Block::Block(u_int64_t index, 
              std::vector<Transaction>&& transactions,
-             std::string&& previousHash)
+             std::string previousHash)
     : _index(index)
     , _transactions(std::move(transactions))
-    , PreviousHash(std::move(previousHash))
+    , PreviousHash(previousHash)
     , _merkle_root(calculate_merkle_root())
     , _timestamp(util::time_point_to_string(std::chrono::system_clock::now()))
-    , Hash(calculate_hash())
 {
 }
 

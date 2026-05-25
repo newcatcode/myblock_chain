@@ -8,7 +8,7 @@ class Block{
 public:
     Block() = default;
     // Add a transaction to the block
-    Block(u_int64_t index, std::vector<Transaction>&& transactions, std::string&& previousHash = "");
+    Block(u_int64_t index, std::vector<Transaction>&& transactions, std::string previousHash = "");
     // Get the hash of the block
     std::string get_hash() const;
     // Get the previous hash of the block

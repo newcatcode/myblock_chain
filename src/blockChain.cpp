@@ -5,7 +5,7 @@
 
 Blockchain::Blockchain() {
     // Create the genesis block
-    Block genesis_block(0, {}, "0");
+    Block genesis_block(0, {});
     chain.push_back(genesis_block);
 }
 
