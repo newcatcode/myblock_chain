@@ -8,7 +8,7 @@ class Block{
 public:
     Block() = default;
     // Add a transaction to the block
-    Block(u_int64_t index, std::vector<Transaction>&& transactions, std::string&& previousHash = "");
+    Block(u_int64_t index, std::vector<Transaction>&& transactions, std::string previousHash = "");
     // Get the hash of the block
     std::string get_hash() const;
     // Get the previous hash of the block
@@ -19,6 +19,10 @@ public:
     std::string to_string() const;
     // verify the transactions in the block
     bool verify_transactions() const;
+    // 获取挖矿的 nonce 值
+    u_int64_t get_nonce() const;
+    // 获取区块中的交易列表
+    const std::vector<Transaction>& get_transactions() const;
 private:
     // general index of the block
     u_int64_t _index;

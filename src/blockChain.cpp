@@ -5,7 +5,7 @@
 
 Blockchain::Blockchain() {
     // Create the genesis block
-    Block genesis_block(0, {}, "0");
+    Block genesis_block(0, {});
     chain.push_back(genesis_block);
 }
 
@@ -15,6 +15,38 @@ void Blockchain::add_block(const Block& block) {
 
 Block Blockchain::get_latest_block() const {
     return chain.back();
+}
+
+std::string Blockchain::get_latest_block_hash() const {
+    return chain.back().get_hash();
+}
+
+size_t Blockchain::get_chain_length() const {
+    return chain.size();
+}
+
+std::string Blockchain::to_string() const {
+    std::ostringstream ss;
+    for (size_t i = 0; i < chain.size(); ++i) {
+        ss << chain[i].to_string();
+        if (i != chain.size() - 1) {
+            ss << "-----------------------------\n";
+        }
+    }
+    return ss.str();
+}
+
+void Blockchain::reset_chain(const Block& genesis_block) {
+    chain.clear();
+    chain.push_back(genesis_block);
+}
+
+void Blockchain::copy_from(const Blockchain& other) {
+    chain.clear();
+    chain.reserve(other.chain.size());
+    for (const auto& b : other.chain) {
+        chain.push_back(b);
+    }
 }
 
 bool Blockchain::is_chain_valid() const {

@@ -19,4 +19,6 @@ add_executable(block_chain
 
 target_include_directories(block_chain PUBLIC ./include)
 
+target_compile_options(block_chain PRIVATE -Wno-deprecated-declarations)
+
 target_link_libraries(block_chain OpenSSL::Crypto)
