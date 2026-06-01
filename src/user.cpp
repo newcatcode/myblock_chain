@@ -4,10 +4,6 @@ User::User(Account&& account) : _account(std::move(account)) {};
 
 User::User(const User&& other) noexcept : _account(std::move(other._account)), _transactionPool(std::move(other._transactionPool)), _blockchain(std::move(other._blockchain)) {}
 
-Account& User::get_account() {
-    return _account;
-}
-
 const Account& User::get_account() const {
     return _account;
 }
@@ -41,13 +37,6 @@ std::string User::get_name() const {
 Transaction User::create_transaction(const std::string& recipient_name, double amount, u_int64_t tx_id, const std::vector<u_int8_t>& private_key) const {
     Transaction tx(tx_id, get_name(), recipient_name, amount);
     tx.sign_transaction(private_key);
-    return tx;
-}
-
-// 创建 coinbase 交易（奖励矿工）
-static Transaction create_coinbase(u_int64_t tx_id, const std::string& miner_name, double reward) {
-    Transaction tx(tx_id, "", miner_name, reward);
-    // coinbase 不签名，发送方为空
     return tx;
 }
 
@@ -132,8 +121,17 @@ void User::run() {
 }
 
 void User::handle_new_transaction(const Transaction& tx) {
+    // ① 提取交易数据、签名和发送方公钥
+    // ② 重新计算交易摘要（compute_hash）
+    // ③ 执行 ECDSA 签名验证
+    if (!tx.verify_signature()) {
+        std::cout << "  [" << get_name() << "] 交易 #" << tx.get_id()
+                  << " 签名验证失败，丢弃" << std::endl;
+        return;
+    }
     _transactionPool.push_back(tx);
-    std::cout << "  [" << get_name() << "] 收到交易 #" << tx.get_id() << std::endl;
+    std::cout << "  [" << get_name() << "] 收到交易 #" << tx.get_id()
+              << " (ECDSA 验证通过)" << std::endl;
 }
 
 void User::handle_mining() {
@@ -143,11 +141,6 @@ void User::handle_mining() {
     u_int64_t block_index = _blockchain.get_chain_length();
     std::vector<Transaction> txs = std::move(_transactionPool);
     _transactionPool.clear();
-
-    // 第一笔交易为 coinbase（奖励矿工）
-    double reward = (block_index == 0) ? 100.0 : 50.0;
-    Transaction coinbase = create_coinbase(_coinbase_tx_id_counter++, get_name(), reward);
-    txs.insert(txs.begin(), std::move(coinbase));
 
     Block block(block_index, std::move(txs), prev_hash);
     block.mine_block(_difficulty);
@@ -179,31 +172,13 @@ void User::handle_block_mined(const Block& block) {
         std::cout << "  [" << get_name() << "] 区块前驱哈希不匹配，丢弃" << std::endl;
         return;
     }
-    // 验证交易
+    // 验证交易（ECDSA 签名验证）
     if (!block.verify_transactions()) {
-        std::cout << "  [" << get_name() << "] 区块交易验证失败，丢弃" << std::endl;
+        std::cout << "  [" << get_name() << "] 区块交易验证失败（签名无效），丢弃" << std::endl;
         return;
-    }
-    // 根据区块中的交易更新本节点余额
-    for (const auto& tx : block.get_transactions()) {
-        if (tx.get_sender().empty()) {
-            // Coinbase 交易（金额由区块创建者设定）
-            if (tx.get_recipient() == get_name()) {
-                _account.add_balance(tx.get_amount());
-                std::cout << "  [" << get_name() << "] 获得 coinbase 奖励 " << tx.get_amount() << std::endl;
-            }
-        } else {
-            if (tx.get_sender() == get_name()) {
-                _account.add_balance(-tx.get_amount());  // 扣除发送金额
-            }
-            if (tx.get_recipient() == get_name()) {
-                _account.add_balance(tx.get_amount());   // 增加接收金额
-            }
-        }
     }
     // 添加到链
     _blockchain.add_block(block);
     std::cout << "  [" << get_name() << "] 已添加区块 #"
-              << (_blockchain.get_chain_length() - 1)
-              << " (余额: " << _account.get_balance() << ")" << std::endl;
+              << (_blockchain.get_chain_length() - 1) << std::endl;
 }

@@ -55,7 +55,6 @@ public:
 
     explicit User(const User&& other) noexcept;
     //get the account of the user
-    Account& get_account();
     const Account& get_account() const;
     // 添加交易到交易池
     void add_transaction(const Transaction& tx);
@@ -94,7 +93,6 @@ private:
     mutable std::mutex _queue_mutex;
     std::condition_variable _cv_message;
     std::atomic<bool> _running{false};
-    u_int64_t _coinbase_tx_id_counter = 1000000;  // coinbase 交易 ID 基数
 
     // 内部事件处理
     void run();
