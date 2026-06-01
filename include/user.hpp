@@ -53,7 +53,12 @@ public:
     // Create a new user with a given account
     explicit User(Account&& account);
 
+    explicit User(Account&& account,const User& other);
+
     explicit User(const User&& other) noexcept;
+
+
+    
     //get the account of the user
     const Account& get_account() const;
     // 添加交易到交易池

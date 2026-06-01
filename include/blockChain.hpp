@@ -5,7 +5,7 @@
 // Blockchain definition goes here
 class Blockchain{
 public:
-    Blockchain();
+    Blockchain(std::string name = "UnnamedChain");
     // Add a block to the blockchain
     void add_block(const Block& block);
     // Get the latest block in the blockchain

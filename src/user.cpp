@@ -1,6 +1,8 @@
 #include "user.hpp"
 #include <chrono>
-User::User(Account&& account) : _account(std::move(account)) {};
+User::User(Account&& account) : _account(std::move(account)),_blockchain(_account.get_name()) {};
+
+User::User(Account&& account,const User& other) : _account(std::move(account)),_transactionPool(other._transactionPool) {_blockchain.copy_from(other._blockchain);}
 
 User::User(const User&& other) noexcept : _account(std::move(other._account)), _transactionPool(std::move(other._transactionPool)), _blockchain(std::move(other._blockchain)) {}
 

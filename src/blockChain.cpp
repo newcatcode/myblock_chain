@@ -3,14 +3,16 @@
 #include "transaction.hpp"
 #include "blockChain.hpp"
 
-Blockchain::Blockchain() {
+Blockchain::Blockchain(std::string name) {
     // Create the genesis block
-    Block genesis_block(0, {});
+    Block genesis_block(0, std::vector<Transaction>{Transaction(10000, "", name, 10000.0)} );
     chain.push_back(genesis_block);
+    chain[0].mine_block(1); // 简单挖矿，确保 genesis block 有效
 }
 
 void Blockchain::add_block(const Block& block) {
     chain.push_back(block);
+    
 }
 
 Block Blockchain::get_latest_block() const {

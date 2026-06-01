@@ -13,7 +13,7 @@ static const int NUM_NODES = 4;
 static const int TXS_PER_BLOCK = 8;
 static const int DIFFICULTY = 3;
 static const int TOTAL_ROUNDS = 3;
-static const auto TX_INTERVAL = std::chrono::milliseconds(200);
+static const auto TX_INTERVAL = std::chrono::milliseconds(100);
 
 int main() {
     std::vector<std::string> names = {"Alice", "Bob", "Charlie", "Dave"};
@@ -21,13 +21,18 @@ int main() {
     // 创建4个节点，保存私钥用于 ECDSA 签名
     std::cout << "========== 创建节点 ==========" << std::endl;
     std::vector<User> users;
-    std::vector<std::vector<u_int8_t>> priv_keys;
     for (int i = 0; i < NUM_NODES; ++i) {
         auto priv = util::generate_private_key();
         auto pub = util::generate_public_key(priv);
-        priv_keys.push_back(priv);
         Account acct(names[i], priv, pub);
-        users.emplace_back(std::move(acct));
+        if(i == 0)  
+        {
+            users.emplace_back(std::move(acct));
+        }
+        else
+        {
+            users.emplace_back(std::move(acct),users[0]);
+        }
         std::cout << names[i] << " 地址: "
                   << util::address_from_public_key(users[i].get_account().get_public_key())
                   << std::endl;
@@ -58,7 +63,7 @@ int main() {
         std::cout << "\n========== 第 " << (round + 1) << " 轮 ==========" << std::endl;
 
         // 逐笔生成随机交易，使用 ECDSA 签名
-        for (int t = 0; t < TXS_PER_BLOCK; ++t) {
+        for (int t = 1; t < TXS_PER_BLOCK; ++t) {
             std::this_thread::sleep_for(TX_INTERVAL);
 
             int sender = node_dist(rng);
@@ -70,7 +75,7 @@ int main() {
             // ① 构造交易数据
             Transaction tx(next_tx_id++, names[sender], names[recipient], amount);
             // ② 用发送方私钥进行 ECDSA 签名（内部生成交易摘要并签名）
-            tx.sign_transaction(priv_keys[sender]);
+            tx.sign_transaction(users[sender].get_account().get_private_key());
             // ③ 交易中已包含签名和发送方公钥，广播到所有节点
 
             std::cout << "生成交易 #" << next_tx_id - 1 << ": "
@@ -131,7 +136,7 @@ int main() {
         std::cout << users[i].get_blockchain().to_string() << std::endl;
     }
 
-    // 验证所有链
+    // 验证所有链:
     std::cout << "\n========== 链完整性验证 ==========" << std::endl;
     for (int i = 0; i < NUM_NODES; ++i) {
         bool valid = users[i].get_blockchain().is_chain_valid();
