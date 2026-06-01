@@ -12,6 +12,7 @@ Block::Block(u_int64_t index,
     , _transactions(std::move(transactions))
     , PreviousHash(previousHash)
     , _merkle_root(calculate_merkle_root())
+    , _nNonce(0)
     , _timestamp(util::time_point_to_string(std::chrono::system_clock::now()))
 {
 }
@@ -55,7 +56,7 @@ std::string Block::to_string() const {
 // verify the transactions in the block
 bool Block::verify_transactions() const {
     for (const auto& transaction : _transactions) {
-        if (!transaction.verify_signature(transaction.compute_hash())) {
+        if (!transaction.verify_signature()) {
             return false;
         }
     }
@@ -74,6 +75,16 @@ std::string Block::calculate_hash() const {
         hashString << std::hex << std::setw(2) << std::setfill('0') << (int)hash[i];
     }
     return hashString.str();
+}
+
+// 获取区块中的交易列表
+const std::vector<Transaction>& Block::get_transactions() const {
+    return _transactions;
+}
+
+// 获取挖矿的 nonce 值
+u_int64_t Block::get_nonce() const {
+    return _nNonce;
 }
 
 // calculate the merkle root of the transactions in the block

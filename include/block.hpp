@@ -19,6 +19,10 @@ public:
     std::string to_string() const;
     // verify the transactions in the block
     bool verify_transactions() const;
+    // 获取挖矿的 nonce 值
+    u_int64_t get_nonce() const;
+    // 获取区块中的交易列表
+    const std::vector<Transaction>& get_transactions() const;
 private:
     // general index of the block
     u_int64_t _index;

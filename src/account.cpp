@@ -24,3 +24,11 @@ double Account::get_balance() const {
 void Account::set_balance(double balance) {
     _balance = balance;
 }
+
+void Account::add_balance(double amount) {
+    _balance += amount;
+}
+
+std::string Account::get_name() const {
+    return _name;
+}

@@ -19,6 +19,10 @@ public:
     double get_balance() const;
     // Set the balance of the account
     void set_balance(double balance);
+    // Add / subtract balance
+    void add_balance(double amount);
+    // Get the name of the account
+    std::string get_name() const;
 
 private:
     // user's name

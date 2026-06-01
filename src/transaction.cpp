@@ -28,21 +28,29 @@ std::string Transaction::compute_hash() const{
     return hash_ss.str();
 }
 
-/// @brief Signs the transaction with the sender's private key
-/// @param private_key The private key of the sender
-
-void Transaction::sign_transaction(const std::string& private_key) {
-    // Placeholder for signing logic
-    _signature = "signed_with_" + private_key; // This is just a placeholder
+/// @brief Signs the transaction with sender's private key using ECDSA
+void Transaction::sign_transaction(const std::vector<u_int8_t>& private_key) {
+    // 从私钥派生公钥并存储
+    _sender_public_key = util::generate_public_key(private_key);
+    // 对交易哈希进行 ECDSA 签名
+    std::string hash = compute_hash();
+    std::vector<u_int8_t> sig = util::ecdsa_sign(private_key, hash);
+    // 签名转为 hex 存储
+    _signature = util::bytes_to_hex(sig);
 }
 
-/// @brief Verifies the transaction's signature
-/// @param signature The signature to verify
-/// @return True if the signature is valid, false otherwise
+/// @brief Verifies the transaction's signature using stored public key
+bool Transaction::verify_signature() const {
+    // Coinbase 交易（无发送方）无需验证
+    if (_sender_key.empty() || _sender_public_key.empty()) return true;
+    // 将 hex 签名转回字节
+    std::vector<u_int8_t> sig = util::hex_to_bytes(_signature);
+    // 用存储的公钥验证签名
+    return util::ecdsa_verify(_sender_public_key, compute_hash(), sig);
+}
 
-bool Transaction::verify_signature(std::string signature) const {
-    // Placeholder for signature verification logic
-    return  _signature == signature; // This is just a placeholder
+const std::vector<u_int8_t>& Transaction::get_sender_public_key() const {
+    return _sender_public_key;
 }
 
 /// @brief Converts the transaction to a string representation
@@ -52,4 +60,20 @@ std::string Transaction::to_string() const {
     ss << "Transaction " << _transaction_id << " from " << _sender_key << " to " << _recipient_key << " of amount " << _amount << " at time " << std::chrono::duration_cast
         <std::chrono::milliseconds>(_timestamp.time_since_epoch()).count();
     return ss.str();
+}
+
+u_int64_t Transaction::get_id() const {
+    return _transaction_id;
+}
+
+const std::string& Transaction::get_sender() const {
+    return _sender_key;
+}
+
+const std::string& Transaction::get_recipient() const {
+    return _recipient_key;
+}
+
+double Transaction::get_amount() const {
+    return _amount;
 }
