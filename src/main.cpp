@@ -28,6 +28,7 @@ int main() {
         if(i == 0)  
         {
             users.emplace_back(std::move(acct));
+            users[0].get_account().add_balance(50.0);
         }
         else
         {
@@ -50,7 +51,7 @@ int main() {
     std::random_device rd;
     std::mt19937 rng(rd());
     std::uniform_int_distribution<int> node_dist(0, NUM_NODES - 1);
-    std::uniform_real_distribution<double> amount_dist(1.0, 50.0);
+    std::uniform_real_distribution<double> amount_dist(1.0, 25.0);
 
     u_int64_t next_tx_id = 0;
 
@@ -68,9 +69,23 @@ int main() {
 
             int sender = node_dist(rng);
             int recipient = node_dist(rng);
-            while (recipient == sender) recipient = node_dist(rng);
+            while (recipient == sender||users[sender].get_account().get_balance() <= 5.0) {
+                sender = node_dist(rng);
+                recipient = node_dist(rng);
+                //std::cout<< "  [" << users[sender].get_name() << "] 余额不足，重新选择发送方..." << std::endl;
+            }
 
             double amount = std::round(amount_dist(rng) * 100.0) / 100.0;
+            while(users[sender].get_account().get_balance() < amount) {
+                amount = std::round(amount_dist(rng) * 100.0) / 100.0;
+                //std::cout<< "  [" << users[sender].get_name() << "] 余额不足，重新生成交易金额..." << std::endl;
+            }
+
+            users[sender].get_account().add_balance(-amount );
+            users[recipient].get_account().add_balance(amount);
+
+            std::cout<< "  [" << users[sender].get_name() << "] 余额: " << users[sender].get_account().get_balance() << std::endl;
+            std::cout<< "  [" << users[recipient].get_name() << "] 余额: " << users[recipient].get_account().get_balance() << std::endl;
 
             // ① 构造交易数据
             Transaction tx(next_tx_id++, names[sender], names[recipient], amount);
@@ -108,6 +123,8 @@ int main() {
         std::cout << "<<< 优胜节点: " << coordinator.winner_name
                   << " (Nonce: " << coordinator.winner_block->get_nonce() << ")"
                   << std::endl;
+        
+        users[coordinator.winner_id].get_account().add_balance(50.0); // 挖矿奖励
 
         // 广播区块到所有节点（各节点独立验证区块内所有交易的签名）
         std::cout << "  广播区块到所有节点进行 ECDSA 签名验证..." << std::endl;

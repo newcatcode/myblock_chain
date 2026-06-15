@@ -1,12 +1,16 @@
 #include "user.hpp"
 #include <chrono>
+#include <mutex>
+extern std::mutex g_cout_mutex;
+std::mutex g_cout_mutex;
+
 User::User(Account&& account) : _account(std::move(account)),_blockchain(_account.get_name()) {};
 
 User::User(Account&& account,const User& other) : _account(std::move(account)),_transactionPool(other._transactionPool) {_blockchain.copy_from(other._blockchain);}
 
 User::User(const User&& other) noexcept : _account(std::move(other._account)), _transactionPool(std::move(other._transactionPool)), _blockchain(std::move(other._blockchain)) {}
 
-const Account& User::get_account() const {
+Account& User::get_account(){
     return _account;
 }
 
@@ -107,8 +111,10 @@ void User::run() {
                     handle_new_transaction(msg.tx);
                     break;
                 case UserMsgType::START_MINING:
+                    {Transaction coinbase_tx(100, "", get_name(), 50.0);
+                    handle_new_transaction(coinbase_tx); // 将 coinbase 交易添加到交易池，确保挖出的区块包含奖励交易
                     handle_mining();
-                    break;
+                    break;}
                 case UserMsgType::BLOCK_MINED:
                     handle_block_mined(msg.block);
                     break;
@@ -127,16 +133,18 @@ void User::handle_new_transaction(const Transaction& tx) {
     // ② 重新计算交易摘要（compute_hash）
     // ③ 执行 ECDSA 签名验证
     if (!tx.verify_signature()) {
+        std::lock_guard<std::mutex> lock(g_cout_mutex);
         std::cout << "  [" << get_name() << "] 交易 #" << tx.get_id()
                   << " 签名验证失败，丢弃" << std::endl;
         return;
     }
     _transactionPool.push_back(tx);
+    std::lock_guard<std::mutex> lock(g_cout_mutex);
     std::cout << "  [" << get_name() << "] 收到交易 #" << tx.get_id()
               << " (ECDSA 验证通过)" << std::endl;
 }
 
-void User::handle_mining() {
+void User::handle_mining() {//挖矿过程：
     auto start = std::chrono::high_resolution_clock::now();
 
     std::string prev_hash = _blockchain.get_latest_block_hash();

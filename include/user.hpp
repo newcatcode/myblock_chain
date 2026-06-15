@@ -60,7 +60,7 @@ public:
 
     
     //get the account of the user
-    const Account& get_account() const;
+    Account& get_account();
     // 添加交易到交易池
     void add_transaction(const Transaction& tx);
     // 获取交易池中的交易数量
